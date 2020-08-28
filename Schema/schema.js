@@ -24,7 +24,8 @@ const BookType = new GraphQLObjectType({
   name: "Book",
   fields: () => ({
     id: { type: GraphQLID },
-    name: { type: GraphQLString }
+    authorId: { type: GraphQLID },
+    name: { type: GraphQLString },
   }),
 })
 
@@ -101,10 +102,11 @@ const Mutation = new GraphQLObjectType({
     addBook: {
       type: BookType,
       args: {
+        authorId: { type: GraphQLID },
         name: { type: GraphQLString }
       },
       resolve(paernt, args) {
-        return new Book({ name: args.name }).save()
+        return new Book(Object.assign({}, args)).save()
       }
     },
     updateBook: {
