@@ -2,6 +2,7 @@ const graphql = require('graphql')
 const Author = require('../Models/author')
 const Book = require('../Models/book')
 const User = require('../Models/user')
+const Review = require('../Models/review')
 
 const {
   GraphQLObjectType,
@@ -47,6 +48,17 @@ const UserType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString }
+  })
+})
+
+const ReviewType = new GraphQLObjectType({
+  name: "Review",
+  fields: () => ({
+    id: { type: GraphQLID },
+    bookId: { type: GraphQLID },
+    userId: { type: GraphQLID },
+    title: { type: GraphQLString },
+    body: { type: GraphQLString }
   })
 })
 
@@ -172,6 +184,18 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return new User(Object.assign({}, args)).save()
+      }
+    },
+    addReview: {
+      type: ReviewType,
+      args: {
+        bookId: { type: GraphQLNonNull(GraphQLID) },
+        userId: { type: GraphQLNonNull(GraphQLID) },
+        title: { type: GraphQLString },
+        body: { type: GraphQLString }
+      },
+      resolve(parent, args) {
+        return new Review(Object.assign({}, args)).save()
       }
     }
   }
