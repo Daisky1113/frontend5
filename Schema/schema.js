@@ -1,5 +1,6 @@
 const graphql = require('graphql')
 const Author = require('../Models/author')
+const Book = require('../Models/book')
 
 const {
   GraphQLObjectType,
@@ -19,6 +20,14 @@ const AuthorType = new GraphQLObjectType({
   }),
 })
 
+const BookType = new GraphQLObjectType({
+  name: "Book",
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString }
+  }),
+})
+
 const RootQuery = new GraphQLObjectType({
   name: "RootQuery",
   fields: {
@@ -35,6 +44,21 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(AuthorType),
       resolve() {
         return Author.find({})
+      }
+    },
+    book: {
+      type: BookType,
+      args: {
+        id: { type: GraphQLID }
+      },
+      resolve(parent, args) {
+        return Book.findById(args.id)
+      }
+    },
+    books: {
+      type: new GraphQLList(BookType),
+      resolve() {
+        return Book.find({})
       }
     }
   }
@@ -72,6 +96,15 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return Author.findByIdAndDelete(args.id)
+      }
+    },
+    addBook: {
+      type: BookType,
+      args: {
+        name: { type: GraphQLString }
+      },
+      resolve(paernt, args) {
+        return new Book({ name: args.name }).save()
       }
     }
   }
