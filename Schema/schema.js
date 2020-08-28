@@ -4,6 +4,7 @@ const Book = require('../Models/book')
 const User = require('../Models/user')
 const Review = require('../Models/review')
 
+
 const {
   GraphQLObjectType,
   GraphQLNonNull,
@@ -109,6 +110,21 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(UserType),
       resolve() {
         return User.find({})
+      }
+    },
+    review: {
+      type: ReviewType,
+      args: {
+        id: { type: GraphQLID },
+      },
+      resolve(parent, args) {
+        return Review.findById(args.id)
+      }
+    },
+    reviews: {
+      type: new GraphQLList(ReviewType),
+      resolve() {
+        return Review.find({})
       }
     }
   }
