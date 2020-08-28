@@ -40,6 +40,12 @@ const BookType = new GraphQLObjectType({
       resolve(paernt) {
         return Author.findById(paernt.authorId)
       }
+    },
+    reviews: {
+      type: new GraphQLList(ReviewType),
+      resolve(parent) {
+        return Review.find({ bookId: parent.id })
+      }
     }
   }),
 })
