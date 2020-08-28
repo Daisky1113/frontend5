@@ -71,7 +71,19 @@ const ReviewType = new GraphQLObjectType({
     bookId: { type: GraphQLID },
     userId: { type: GraphQLID },
     title: { type: GraphQLString },
-    body: { type: GraphQLString }
+    body: { type: GraphQLString },
+    book: {
+      type: BookType,
+      resolve(parent) {
+        return Book.findById(parent.bookId)
+      }
+    },
+    user: {
+      type: UserType,
+      resolve(parent) {
+        return User.findById(parent.userId)
+      }
+    }
   })
 })
 
