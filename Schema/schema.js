@@ -98,6 +98,13 @@ const GenreType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
+    books: {
+      type: new GraphQLList(BookType),
+      async resolve(parent) {
+        const connection = await Book_Genre_Connection.find({ genreId: parent.id })
+        return connection.map(async c => await Book.findById(c.bookId))
+      }
+    }
   })
 })
 
