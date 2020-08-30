@@ -3,7 +3,8 @@ const Author = require('../Models/author')
 const Book = require('../Models/book')
 const User = require('../Models/user')
 const Review = require('../Models/review')
-
+const Genre = require('../Models/genre')
+const Book_Genre_Connection = require('../Models/book_genre_connection')
 
 const {
   GraphQLObjectType,
@@ -33,12 +34,19 @@ const BookType = new GraphQLObjectType({
   name: "Book",
   fields: () => ({
     id: { type: GraphQLID },
-    authorId: { type: GraphQLID },
     name: { type: GraphQLString },
     author: {
       type: AuthorType,
       resolve(paernt) {
         return Author.findById(paernt.authorId)
+      }
+    },
+    genres: {
+      type: new GraphQLList(GenreType),
+      async resolve(parent, args) {
+        // todo 何かmongooseのメソッドないか？
+        const book_genre = await Book_Genre_Connection.find({ bookId: parent.id })
+        return book_genre.map(each => Genre.findById(each.genreId).select('name'))
       }
     },
     reviews: {
@@ -68,8 +76,6 @@ const ReviewType = new GraphQLObjectType({
   name: "Review",
   fields: () => ({
     id: { type: GraphQLID },
-    bookId: { type: GraphQLID },
-    userId: { type: GraphQLID },
     title: { type: GraphQLString },
     body: { type: GraphQLString },
     book: {
@@ -84,6 +90,23 @@ const ReviewType = new GraphQLObjectType({
         return User.findById(parent.userId)
       }
     }
+  })
+})
+
+const GenreType = new GraphQLObjectType({
+  name: "Genre",
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+  })
+})
+
+const Book_Genre_ConnectionType = new GraphQLObjectType({
+  name: "Book_Genre",
+  fields: () => ({
+    id: { type: GraphQLID },
+    bookId: { type: GraphQLID },
+    genreId: { type: GraphQLID }
   })
 })
 
@@ -149,6 +172,12 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(ReviewType),
       resolve() {
         return Review.find({})
+      }
+    },
+    genres: {
+      type: new GraphQLList(GenreType),
+      resolve() {
+        return Genre.find({})
       }
     }
   }
@@ -237,8 +266,52 @@ const Mutation = new GraphQLObjectType({
       resolve(parent, args) {
         return new Review(Object.assign({}, args)).save()
       }
+    },
+    addGenre: {
+      type: GenreType,
+      args: {
+        name: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        const g = new Genre(Object.assign({}, args))
+        console.log(g)
+        return new Genre(Object.assign({}, args)).save()
+      }
+    },
+    updateGenre: {
+      type: GenreType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString }
+      },
+      resolve(parent, args) {
+        return Genre.findByIdAndUpdate(args.id, Object.assign({}, args), { new: true })
+      }
+    },
+    deleteGenre: {
+      type: GenreType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parent, args) {
+        return Genre.findByIdAndDelete(args.id)
+      }
+    },
+    addBookGenreConnection: {
+      type: Book_Genre_ConnectionType,
+      args: {
+        bookId: { type: GraphQLNonNull(GraphQLID) },
+        genreId: { type: GraphQLNonNull(GraphQLID) }
+      },
+      resolve(parent, args) {
+        return new Book_Genre_Connection({
+          bookId: args.bookId,
+          genreId: args.genreId
+        }).save()
+      }
     }
-  }
+  },
+
 })
 
 module.exports = new GraphQLSchema({
