@@ -44,9 +44,8 @@ const BookType = new GraphQLObjectType({
     genres: {
       type: new GraphQLList(GenreType),
       async resolve(parent, args) {
-        // todo 何かmongooseのメソッドないか？
-        const book_genre = await Book_Genre_Connection.find({ bookId: parent.id })
-        return book_genre.map(each => Genre.findById(each.genreId).select('name'))
+        const book_genre = await Book_Genre_Connection.find({ bookId: parent.id }).populate('genreId')
+        return book_genre.map(el => el.genreId)
       }
     },
     reviews: {
@@ -101,8 +100,8 @@ const GenreType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       async resolve(parent) {
-        const connection = await Book_Genre_Connection.find({ genreId: parent.id })
-        return connection.map(async c => await Book.findById(c.bookId))
+        const connection = await Book_Genre_Connection.find({ genreId: parent.id }).populate('bookId')
+        return connection.map(el => el.bookId)
       }
     }
   })
