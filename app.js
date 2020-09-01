@@ -23,6 +23,6 @@ app.listen(PORT, () => {
   console.log(`listenning on port ${PORT}`)
 })
 
-app.get('/', (req, res) => {
-  res.send('Hello World')
+app.get('/api/hoge/', (req, res) => {
+  res.json({ msg: "foo" })
 })
